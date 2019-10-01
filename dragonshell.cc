@@ -35,7 +35,7 @@ vector<string> tokenize(const string &str, const char *delim) {
 void pwd() {
   pid_t pid = fork();
   if (pid == 0){
-    //cout << "went into pid=0" << endl;
+    cout << "went into pid=0" << endl;
     char *dir;
     getcwd(dir, PATH_MAX);
     if(dir != NULL) {
@@ -49,6 +49,9 @@ void pwd() {
   }
   return;
 }
+void cd(){
+  
+}
 
 int main(int argc, char **argv) {
   // print the string prompt without a newline, before beginning to read
@@ -56,20 +59,25 @@ int main(int argc, char **argv) {
   // do this in a loop
   //char input[1024];
   string str;
-  vector <string> commands;
+  vector <string> commands_str;
   while(1){
     cout << "dragonshell > ";
     getline(cin, str);
     //cout << str << endl;
     //char *delim = ' ';
 
-    commands = tokenize(str, ";");
-    for (int i =0; i< commands.size(); i++) {
-      //cout << ' ' << commands[i];
-      //cout << '\n';
-
-      if (strcmp(commands[i].c_str(), "pwd")==0) {
+    commands_str = tokenize(str, ";");
+    for (int i =0; i< commands_str.size(); ++i) {
+      cout << ' ' << commands_str[i];
+      cout << '\n';
+      vector <string> command;
+      command = tokenize(commands_str[i], " ");
+      if (strcmp(command[i].c_str(), "pwd")==0) {
         pwd();
+      }
+      if (strcmp(command[i].c_str(), "cd")==0){
+        cout << command[i] << " " << command[i++] << endl;
+        cd();
       }
     }
     
