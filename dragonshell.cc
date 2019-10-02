@@ -64,6 +64,7 @@ int main(int argc, char **argv) {
   // tokenize the input, run the command(s), and print the result
   // do this in a loop
   //char input[1024];
+  string path_string = "/bin/:/usr/bin/";
   
   while(1){
     string str;
@@ -87,6 +88,21 @@ int main(int argc, char **argv) {
       }
       if (strcmp(command[0].c_str(), "pwd")==0) {
         pwd();
+      }
+
+      if(strcmp(command[0].c_str(), "$PATH")==0) {
+        cout << "Current PATH: " << path_string << endl;
+      }
+      if(strcmp(command[0].c_str(), "a2path")==0) {
+        if(command[1].find("$PATH") == 0) {
+          int pos = command[1].find(":");
+          string path_substr = command[1].substr(pos);
+          path_string.append(path_substr);
+        }
+        else{
+          path_string = command[1];
+          //cout << "$PATH changed" << endl;
+        }
       }
       
     }
