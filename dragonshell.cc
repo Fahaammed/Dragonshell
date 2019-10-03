@@ -27,7 +27,6 @@ vector<string> tokenize(const string &str, const char *delim) {
     tokenized_string = strtok(NULL, delim);
   }
   delete[] cstr;
-
   return tokens;
 }
 
@@ -52,7 +51,6 @@ void pwd() {
     wait(NULL);
     return;
   }
-  
   return;
 }
 
@@ -63,26 +61,48 @@ void cd(string ch){
   return;
 }
 
-void external_programs(string full_command, string path, string file) {
+void external_programs(vector <string> full_command, vector<string> path_vect,string first_arg, string second_arg) {
   pid_t pid = fork();
-  if (pid == 0){
-    char *cstr = const_cast<char*>(full_command.c_str());
-  
-    char *arr1[] ={cstr , NULL};
-    char *envp[] = {NULL};
-
-
-    if (execve(path.c_str(), arr1, envp) ==-1){
-       cout << "End on demo" << endl;
-    }
-    cout << "End on demo" << endl;
-    return;
+  char *arr1[full_command.size()+1];
+  for(int i = 0; i < full_command.size() ; i++ ){
+    arr1 [i] = (char*)full_command[i].c_str();
   }
-  if (pid < 1){
+  arr1[full_command.size()] = NULL;
+
+  if (pid == 0){
+    //char *cstr1 = const_cast<char*>(first_arg.c_str());
+    //char *cstr2 = const_cast<char*>(second_arg.c_str());
+    
+    char *envp[] = {NULL};
+    int i = 0;
+
+    while (i < path_vect.size()){
+      string new_path = string(path_vect[i]) + first_arg;
+      i++;
+      if (execve(new_path.c_str(), arr1, envp) ==-1){ 
+        cout << "End on execve no " << i << endl;
+      }
+      else{
+        cout << "ELSE" <<endl;
+        break;
+      } 
+    }
+    if (i == path_vect.size()) {
+      cout << "dragonshell: command not found" << endl;
+    } 
+  }
+  else if (pid == -1){
     cout << "fork failed" << endl;
     return;
   }
+  else{
+    wait(NULL);
+    return;
+  }  
+  
 }
+  
+
 
 int main(int argc, char **argv) {
   // print the string prompt without a newline, before beginning to read
@@ -90,7 +110,13 @@ int main(int argc, char **argv) {
   // do this in a loop
   //char input[1024];
   string path_string = "/bin/:/usr/bin/";
-  
+
+  vector <string> path_vector;
+  path_vector.push_back("");
+  path_vector.push_back("/bin/:");
+  path_vector.push_back("/usr/bin/:");
+
+
   while(1){
     string str;
     vector <string> commands_str;
@@ -123,6 +149,7 @@ int main(int argc, char **argv) {
             int pos = command[1].find(":");
             string path_substr = command[1].substr(pos);
             path_string.append(path_substr);
+            path_vector.push_back(path_substr);
           }
           else{
             path_string = command[1];
@@ -132,7 +159,7 @@ int main(int argc, char **argv) {
       if(command[0].find("/") == 0) {
         int pos = command[0].find("/");
         if (pos == 0) {
-          external_programs(commands_str[i],command[0],command[1]);
+          external_programs(command,path_vector, command[0], command[1]);
         }
 
       }
