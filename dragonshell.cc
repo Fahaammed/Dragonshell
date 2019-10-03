@@ -48,15 +48,40 @@ void pwd() {
     cout << "fork failed" << endl;
     return;
   }
-  wait(NULL);
+  if (pid > 0) {
+    wait(NULL);
+    return;
+  }
+  
   return;
 }
 
 void cd(string ch){
   if(chdir(ch.c_str()) == -1) {
-    cout << "the directory" << ch << "does not exist" << endl;
+    cout << "dragonshell: No such file or directory" << endl;
   }
   return;
+}
+
+void external_programs(string full_command, string path, string file) {
+  pid_t pid = fork();
+  if (pid == 0){
+    char *cstr = const_cast<char*>(full_command.c_str());
+  
+    char *arr1[] ={cstr , NULL};
+    char *envp[] = {NULL};
+
+
+    if (execve(path.c_str(), arr1, envp) ==-1){
+       cout << "End on demo" << endl;
+    }
+    cout << "End on demo" << endl;
+    return;
+  }
+  if (pid < 1){
+    cout << "fork failed" << endl;
+    return;
+  }
 }
 
 int main(int argc, char **argv) {
@@ -71,20 +96,19 @@ int main(int argc, char **argv) {
     vector <string> commands_str;
     cout << "dragonshell > ";
     getline(cin, str);
-    //cout << str << endl;
-    //char *delim = ' ';
 
     commands_str = tokenize(str, ";");
-    //for (int i =0; i< commands_str.size(); ++i) {
-      //cout << ' ' << commands_str[i] << endl;
-    //}
     for (int i =0; i< commands_str.size(); ++i) {
-      //cout << ' ' << commands_str[i] << endl;
       vector <string> command;
       command = tokenize(commands_str[i], " ");
       if (strcmp(command[0].c_str(), "cd")==0){
-        //cout << command[0] << " " << command[1] << endl;
-        cd(command[1]);
+        if (command.size() > 1) {
+          cd(command[1]);
+        }
+        else {
+          cout << "expected argument to \"cd\"" << endl;
+        }
+        
       }
       if (strcmp(command[0].c_str(), "pwd")==0) {
         pwd();
@@ -94,16 +118,29 @@ int main(int argc, char **argv) {
         cout << "Current PATH: " << path_string << endl;
       }
       if(strcmp(command[0].c_str(), "a2path")==0) {
-        if(command[1].find("$PATH") == 0) {
-          int pos = command[1].find(":");
-          string path_substr = command[1].substr(pos);
-          path_string.append(path_substr);
-        }
-        else{
-          path_string = command[1];
-          //cout << "$PATH changed" << endl;
+        if (command.size() > 1) {
+          if(command[1].find("$PATH") == 0) {
+            int pos = command[1].find(":");
+            string path_substr = command[1].substr(pos);
+            path_string.append(path_substr);
+          }
+          else{
+            path_string = command[1];
+          }
         }
       }
+      if(command[0].find("/") == 0) {
+        int pos = command[0].find("/");
+        if (pos == 0) {
+          external_programs(commands_str[i],command[0],command[1]);
+        }
+
+      }
+      if(strcmp(command[0].c_str(), "exit")== 0){
+        cout << "Exiting" << endl;
+        _exit(3);
+      }
+    
       
     }
     
