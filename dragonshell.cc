@@ -5,6 +5,7 @@
 #include <unistd.h>
 #define PATH_MAX  4096
 #include <sys/wait.h>
+#include <fcntl.h>
 
 /**
  * @brief Tokenize a string 
@@ -70,17 +71,22 @@ void external_programs(vector <string> full_command, vector<string> path_vect,st
   arr1[full_command.size()] = NULL;
 
   if (pid == 0){
-    //char *cstr1 = const_cast<char*>(first_arg.c_str());
-    //char *cstr2 = const_cast<char*>(second_arg.c_str());
-    
     char *envp[] = {NULL};
     int i = 0;
-
+    string new_path;
     while (i < path_vect.size()){
-      string new_path = string(path_vect[i]) + first_arg;
-      i++;
+      
+      if(path_vect[i].back() != '/' && i != 0){
+        new_path = string(path_vect[i]) + '/' + first_arg;
+      }
+      else {
+        new_path = string(path_vect[i]) + first_arg;
+      }
+      
+      
       if (execve(new_path.c_str(), arr1, envp) ==-1){ 
-        cout << "End on execve no " << i << endl;
+        //cout << "End on execve no " << i << endl;
+        i++;
       }
       else{
         cout << "ELSE" <<endl;
@@ -103,8 +109,19 @@ void external_programs(vector <string> full_command, vector<string> path_vect,st
 }
 
 void background_process(vector <string> full_command, vector<string> path_vect,string first_arg, bool background){
-  
 
+  return;
+}
+void do_dup(string fileName){
+  int file_desc = open(fileName.c_str(), O_CREAT | O_WRONLY, 0666);
+  if(file_desc < 0){
+    printf("Error opening the file\n");
+  }
+  cout << "file open successfull"<< endl;
+  dup2(file_desc, 1);
+  //printf("Tester\n");
+  close(file_desc);
+  return;
 }
   
 
@@ -131,6 +148,14 @@ int main(int argc, char **argv) {
     commands_str = tokenize(str, ";");
     for (int i =0; i< commands_str.size(); ++i) {
       vector <string> command;
+      if(commands_str[i].find(">") != -1){
+        int pos = commands_str[i].find(">");
+        string file_name = commands_str[i].substr(pos+2);
+        cout << "position of > charecter "<< pos << " filename: "<< file_name << endl;
+        do_dup(file_name);
+        string redirected_command = commands_str[i].erase(pos-1, file_name.size()+3);
+        cout << "new command: " << redirected_command << endl;
+      }
       command = tokenize(commands_str[i], " ");
       if (strcmp(command[0].c_str(), "cd")==0){
         if (command.size() > 1) {
@@ -141,14 +166,14 @@ int main(int argc, char **argv) {
         }
         
       }
-      if (strcmp(command[0].c_str(), "pwd")==0) {
+      else if (strcmp(command[0].c_str(), "pwd")==0) {
         pwd();
       }
 
-      if(strcmp(command[0].c_str(), "$PATH")==0) {
+      else if(strcmp(command[0].c_str(), "$PATH")==0) {
         cout << "Current PATH: " << path_string << endl;
       }
-      if(strcmp(command[0].c_str(), "a2path")==0) {
+      else if(strcmp(command[0].c_str(), "a2path")==0) {
         if (command.size() > 1) {
           if(command[1].find("$PATH") == 0) {
             int pos = command[1].find(":");
@@ -162,31 +187,16 @@ int main(int argc, char **argv) {
           }
         }
       }
-      if(command[0].find("/") == 0) {
-        int pos = command[0].find("/");
-        if (pos == 0) {
-          external_programs(command,path_vector, command[0]);
-        }
-
-      }
-      if(strcmp(command[0].c_str(), "exit")== 0){
+      else if(strcmp(command[0].c_str(), "exit")== 0){
         cout << "Exiting" << endl;
         _exit(3);
       }
-
-      if(commands_str[i].find("&") != -1){
-        int pos = commands_str[i].find("&");
-        int end_commandPos = commands_str[i].size();
-        if((pos+1) == end_commandPos) {
-          background_process (command,path_vector, command[0], true)
-          cout << "background process found " << endl;
-        }
-      }
-    
       
+
+      else {
+        external_programs(command,path_vector, command[0]);
+      }
     }
-    
   }
-  
   return 0;
 }
