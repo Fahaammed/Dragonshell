@@ -61,7 +61,7 @@ void cd(string ch){
   return;
 }
 
-void external_programs(vector <string> full_command, vector<string> path_vect,string first_arg, string second_arg) {
+void external_programs(vector <string> full_command, vector<string> path_vect,string first_arg) {
   pid_t pid = fork();
   char *arr1[full_command.size()+1];
   for(int i = 0; i < full_command.size() ; i++ ){
@@ -101,6 +101,11 @@ void external_programs(vector <string> full_command, vector<string> path_vect,st
   }  
   
 }
+
+void background_process(vector <string> full_command, vector<string> path_vect,string first_arg, bool background){
+  
+
+}
   
 
 
@@ -113,8 +118,8 @@ int main(int argc, char **argv) {
 
   vector <string> path_vector;
   path_vector.push_back("");
-  path_vector.push_back("/bin/:");
-  path_vector.push_back("/usr/bin/:");
+  path_vector.push_back("/bin/");
+  path_vector.push_back("/usr/bin/");
 
 
   while(1){
@@ -149,6 +154,7 @@ int main(int argc, char **argv) {
             int pos = command[1].find(":");
             string path_substr = command[1].substr(pos);
             path_string.append(path_substr);
+            path_substr = command[1].substr(pos+1);
             path_vector.push_back(path_substr);
           }
           else{
@@ -159,13 +165,22 @@ int main(int argc, char **argv) {
       if(command[0].find("/") == 0) {
         int pos = command[0].find("/");
         if (pos == 0) {
-          external_programs(command,path_vector, command[0], command[1]);
+          external_programs(command,path_vector, command[0]);
         }
 
       }
       if(strcmp(command[0].c_str(), "exit")== 0){
         cout << "Exiting" << endl;
         _exit(3);
+      }
+
+      if(commands_str[i].find("&") != -1){
+        int pos = commands_str[i].find("&");
+        int end_commandPos = commands_str[i].size();
+        if((pos+1) == end_commandPos) {
+          background_process (command,path_vector, command[0], true)
+          cout << "background process found " << endl;
+        }
       }
     
       
