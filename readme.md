@@ -1,3 +1,5 @@
+DRAGONSHELL is a program which imitates the linush command line and runs the given commands. It handles basic commands(ls, cd, a2path, background running using '&' etc) on it's own and can run other commands if the path of the command is given. In this design I used multiple processes working simultaneously to handle commands.
+
 i) Design Choices
      the design is very similar to that of the shell. It asks user for inputs in a while loop unless ctrl+D is not pressed. It is very modular as each pattern match leads to a diffrent function call.
 
